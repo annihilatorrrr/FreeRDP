@@ -263,11 +263,12 @@ extern "C"
 {
 #endif
 
-	WINPR_ATTR_MALLOC(CloseHandle, 1)
-	WINPR_API HANDLE CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode,
-	                             LPSECURITY_ATTRIBUTES lpSecurityAttributes,
-	                             DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes,
-	                             HANDLE hTemplateFile);
+	WINPR_DEPRECATED_VAR("since 3.16.0, Use winpr_CreateFile",
+	                     WINPR_ATTR_MALLOC(CloseHandle, 1) WINPR_API HANDLE CreateFileA(
+	                         LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode,
+	                         LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+	                         DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes,
+	                         HANDLE hTemplateFile));
 
 	WINPR_ATTR_MALLOC(CloseHandle, 1)
 	WINPR_API HANDLE CreateFileW(LPCWSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode,
@@ -275,7 +276,8 @@ extern "C"
 	                             DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes,
 	                             HANDLE hTemplateFile);
 
-	WINPR_API BOOL DeleteFileA(LPCSTR lpFileName);
+	WINPR_DEPRECATED_VAR("since 3.16.0, Use winpr_DeleteFile",
+	                     WINPR_API BOOL DeleteFileA(LPCSTR lpFileName));
 
 	WINPR_API BOOL DeleteFileW(LPCWSTR lpFileName);
 
@@ -386,7 +388,9 @@ extern "C"
 	WINPR_API BOOL CreateDirectoryA(LPCSTR lpPathName, LPSECURITY_ATTRIBUTES lpSecurityAttributes);
 	WINPR_API BOOL CreateDirectoryW(LPCWSTR lpPathName, LPSECURITY_ATTRIBUTES lpSecurityAttributes);
 
-	WINPR_API BOOL RemoveDirectoryA(LPCSTR lpPathName);
+	WINPR_DEPRECATED_VAR("since 3.16.0, Use winpr_RemoveDirectory",
+	                     WINPR_API BOOL RemoveDirectoryA(LPCSTR lpPathName));
+
 	WINPR_API BOOL RemoveDirectoryW(LPCWSTR lpPathName);
 
 	WINPR_API HANDLE GetStdHandle(DWORD nStdHandle);
@@ -401,11 +405,14 @@ extern "C"
 	                                 LPDWORD lpBytesPerSector, LPDWORD lpNumberOfFreeClusters,
 	                                 LPDWORD lpTotalNumberOfClusters);
 
-	WINPR_API BOOL MoveFileExA(LPCSTR lpExistingFileName, LPCSTR lpNewFileName, DWORD dwFlags);
+	WINPR_DEPRECATED_VAR("since 3.16.0, Use winpr_MoveFileEx",
+	                     WINPR_API BOOL MoveFileExA(LPCSTR lpExistingFileName, LPCSTR lpNewFileName,
+	                                                DWORD dwFlags));
 
 	WINPR_API BOOL MoveFileExW(LPCWSTR lpExistingFileName, LPCWSTR lpNewFileName, DWORD dwFlags);
 
-	WINPR_API BOOL MoveFileA(LPCSTR lpExistingFileName, LPCSTR lpNewFileName);
+	WINPR_DEPRECATED_VAR("since 3.16.0, Use winpr_MoveFile",
+	                     WINPR_API BOOL MoveFileA(LPCSTR lpExistingFileName, LPCSTR lpNewFileName));
 
 	WINPR_API BOOL MoveFileW(LPCWSTR lpExistingFileName, LPCWSTR lpNewFileName);
 
@@ -459,7 +466,27 @@ typedef struct
 
 #endif /* _WIN32 */
 
-WINPR_API BOOL ValidFileNameComponent(LPCWSTR lpFileName);
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+	WINPR_API BOOL ValidFileNameComponent(LPCWSTR lpFileName);
+
+#if defined(_UWP) || !defined(_WIN32)
+WINPR_API DWORD GetLogicalDriveStringsA(DWORD nBufferLength, LPSTR lpBuffer);
+
+WINPR_API DWORD GetLogicalDriveStringsW(DWORD nBufferLength, LPWSTR lpBuffer);
+#endif
+
+WINPR_ATTR_MALLOC(CloseHandle, 1)
+WINPR_API HANDLE winpr_CreateFile(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode,
+	                              LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+	                              DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes,
+	                              HANDLE hTemplateFile);
+
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef _UWP
 
@@ -496,10 +523,6 @@ extern "C"
 	WINPR_API BOOL GetDiskFreeSpaceW(LPCWSTR lpRootPathName, LPDWORD lpSectorsPerCluster,
 	                                 LPDWORD lpBytesPerSector, LPDWORD lpNumberOfFreeClusters,
 	                                 LPDWORD lpTotalNumberOfClusters);
-
-	WINPR_API DWORD GetLogicalDriveStringsA(DWORD nBufferLength, LPSTR lpBuffer);
-
-	WINPR_API DWORD GetLogicalDriveStringsW(DWORD nBufferLength, LPWSTR lpBuffer);
 
 	WINPR_API BOOL PathIsDirectoryEmptyA(LPCSTR pszPath);
 
