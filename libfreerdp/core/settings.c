@@ -795,6 +795,19 @@ rdpSettings* freerdp_settings_new(DWORD flags)
 
 	if (!server && !remote)
 	{
+		if (!freerdp_settings_set_string(settings, FreeRDP_GatewayAvdScope,
+		                                 "https%%3A%%2F%%2F%s%%2F%s%%2Foauth2%%2Fnativeclient"))
+			goto out_fail;
+		if (!freerdp_settings_set_string(settings, FreeRDP_GatewayAvdAccessTokenFormat,
+		                                 "ms-appx-web%%3a%%2f%%2fMicrosoft.AAD.BrokerPlugin%%2f%s"))
+			goto out_fail;
+		if (!freerdp_settings_set_string(settings, FreeRDP_GatewayAvdAccessAadFormat,
+		                                 "https%%3A%%2F%%2F%s%%2F%s%%2Foauth2%%2Fnativeclient"))
+			goto out_fail;
+		if (!freerdp_settings_set_string(settings, FreeRDP_GatewayAvdScope,
+		                                 "https%3A%2F%2Fwww.wvd.microsoft.com%2F.default"))
+
+			goto out_fail;
 		if (!freerdp_settings_set_string(settings, FreeRDP_GatewayAvdClientID,
 		                                 "a85cf173-4192-42f8-81fa-777a763e6e2c"))
 			goto out_fail;
@@ -1670,7 +1683,8 @@ BOOL freerdp_settings_enforce_monitor_exists(rdpSettings* settings)
 
 	if (nrIds == 0)
 	{
-		if (!freerdp_settings_set_uint32(settings, FreeRDP_NumMonitorIds, 1))
+		const UINT32 dsize = freerdp_settings_get_uint32(settings, FreeRDP_MonitorDefArraySize);
+		if (!freerdp_settings_set_pointer_len(settings, FreeRDP_MonitorIds, NULL, dsize))
 			return FALSE;
 	}
 	if (!useMonitors || (count == 0))
