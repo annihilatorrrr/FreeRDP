@@ -878,13 +878,16 @@ static BOOL resize_setting(rdpSettings* settings, FreeRDP_Settings_Keys_Pointer 
 	return freerdp_settings_set_pointer(settings, id, ptr);
 }
 
-BOOL freerdp_capability_buffer_resize(rdpSettings* settings, size_t count)
+BOOL freerdp_capability_buffer_resize(rdpSettings* settings, size_t count, BOOL force)
 {
 	WINPR_ASSERT(settings);
 
 	const uint32_t len = settings->ReceivedCapabilitiesSize;
-	if (len == count)
-		return TRUE;
+	if (!force)
+	{
+		if (len == count)
+			return TRUE;
+	}
 
 	freerdp_capability_data_free(settings, count, FALSE);
 
@@ -894,7 +897,7 @@ BOOL freerdp_capability_buffer_resize(rdpSettings* settings, size_t count)
 		return TRUE;
 	}
 
-	const size_t oldsize = settings->ReceivedCapabilitiesSize;
+	const size_t oldsize = force ? 0 : settings->ReceivedCapabilitiesSize;
 	if (!resize_setting(settings, FreeRDP_ReceivedCapabilityDataSizes, oldsize, count,
 	                    sizeof(uint32_t)))
 		return FALSE;
@@ -915,7 +918,7 @@ BOOL freerdp_capability_buffer_copy(rdpSettings* settings, const rdpSettings* sr
 	if (src->ReceivedCapabilitiesSize == 0)
 		return TRUE;
 
-	if (!freerdp_capability_buffer_resize(settings, src->ReceivedCapabilitiesSize))
+	if (!freerdp_capability_buffer_resize(settings, src->ReceivedCapabilitiesSize, TRUE))
 		return FALSE;
 
 	for (UINT32 x = 0; x < src->ReceivedCapabilitiesSize; x++)
@@ -1576,7 +1579,7 @@ BOOL freerdp_settings_set_pointer_len(rdpSettings* settings, FreeRDP_Settings_Ke
 			return freerdp_settings_set_pointer_len_(settings, id, FreeRDP_DynamicChannelArraySize,
 			                                         data, len, sizeof(ADDIN_ARGV*));
 		case FreeRDP_ReceivedCapabilityData:
-			if (!freerdp_capability_buffer_resize(settings, len))
+			if (!freerdp_capability_buffer_resize(settings, len, FALSE))
 				return FALSE;
 			if (data == NULL)
 			{
@@ -1584,7 +1587,7 @@ BOOL freerdp_settings_set_pointer_len(rdpSettings* settings, FreeRDP_Settings_Ke
 			}
 			return TRUE;
 		case FreeRDP_ReceivedCapabilities:
-			if (!freerdp_capability_buffer_resize(settings, len))
+			if (!freerdp_capability_buffer_resize(settings, len, FALSE))
 				return FALSE;
 			if (data == NULL)
 			{
@@ -1603,7 +1606,7 @@ BOOL freerdp_settings_set_pointer_len(rdpSettings* settings, FreeRDP_Settings_Ke
 			                                         sizeof(UINT32));
 
 		case FreeRDP_ReceivedCapabilityDataSizes:
-			if (!freerdp_capability_buffer_resize(settings, len))
+			if (!freerdp_capability_buffer_resize(settings, len, FALSE))
 				return FALSE;
 			if (data == NULL)
 			{
@@ -2432,7 +2435,6 @@ BOOL freerdp_settings_set_monitor_def_array_sorted(rdpSettings* settings,
 		if (!freerdp_settings_set_pointer_len(settings, FreeRDP_MonitorDefArray, NULL, 0))
 			return FALSE;
 		return freerdp_settings_set_uint32(settings, FreeRDP_MonitorCount, 0);
-		return TRUE;
 	}
 
 	// Find primary or alternatively the monitor at 0/0
@@ -3723,13 +3725,12 @@ char* freerdp_settings_serialize(const rdpSettings* settings, BOOL pretty, size_
 	if (!jpointer)
 		goto fail;
 
-	for (SSIZE_T x = 0; x < FreeRDP_Settings_StableAPI_MAX; x++)
+	for (int x = 0; x < FreeRDP_Settings_StableAPI_MAX; x++)
 	{
 		union
 		{
 
-			int i;
-			SSIZE_T s;
+			int s;
 			FreeRDP_Settings_Keys_Bool b;
 			FreeRDP_Settings_Keys_Int16 i16;
 			FreeRDP_Settings_Keys_UInt16 u16;
@@ -4340,13 +4341,12 @@ rdpSettings* freerdp_settings_deserialize(const char* jstr, size_t length)
 	if (!jpointer)
 		goto fail;
 
-	for (SSIZE_T x = 0; x < FreeRDP_Settings_StableAPI_MAX; x++)
+	for (int x = 0; x < FreeRDP_Settings_StableAPI_MAX; x++)
 	{
 		union
 		{
 
-			int i;
-			SSIZE_T s;
+			int s;
 			FreeRDP_Settings_Keys_Bool b;
 			FreeRDP_Settings_Keys_Int16 i16;
 			FreeRDP_Settings_Keys_UInt16 u16;
@@ -4371,13 +4371,12 @@ rdpSettings* freerdp_settings_deserialize(const char* jstr, size_t length)
 		}
 	}
 
-	for (SSIZE_T x = 0; x < FreeRDP_Settings_StableAPI_MAX; x++)
+	for (int x = 0; x < FreeRDP_Settings_StableAPI_MAX; x++)
 	{
 		union
 		{
 
-			int i;
-			SSIZE_T s;
+			int s;
 			FreeRDP_Settings_Keys_Bool b;
 			FreeRDP_Settings_Keys_Int16 i16;
 			FreeRDP_Settings_Keys_UInt16 u16;
