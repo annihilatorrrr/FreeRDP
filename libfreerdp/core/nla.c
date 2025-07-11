@@ -386,10 +386,11 @@ static BOOL nla_client_setup_identity(rdpNla* nla)
 
 		if (settings->RedirectionPassword && (settings->RedirectionPasswordLength > 0))
 		{
-			if (!identity_set_from_settings_with_pwd(
-			        nla->identity, settings, FreeRDP_Username, FreeRDP_Domain,
-			        (const WCHAR*)settings->RedirectionPassword,
-			        settings->RedirectionPasswordLength / sizeof(WCHAR)))
+			const WCHAR* wstr = (const WCHAR*)settings->RedirectionPassword;
+			const size_t len = _wcsnlen(wstr, settings->RedirectionPasswordLength / sizeof(WCHAR));
+
+			if (!identity_set_from_settings_with_pwd(nla->identity, settings, FreeRDP_Username,
+			                                         FreeRDP_Domain, wstr, len))
 				return FALSE;
 
 			usePassword = FALSE;
@@ -1111,7 +1112,7 @@ static BOOL set_creds_octetstring_to_settings(WinPrAsn1Decoder* dec, WinPrAsn1_t
 	if (optional)
 	{
 		WinPrAsn1_tagId itemTag = 0;
-		if (!WinPrAsn1DecPeekTag(dec, &itemTag) || (itemTag != tagId))
+		if (!WinPrAsn1DecPeekTag(dec, &itemTag) || (itemTag != (ER_TAG_CONTEXTUAL | tagId)))
 			return TRUE;
 	}
 

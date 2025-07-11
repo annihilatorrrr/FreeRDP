@@ -42,6 +42,9 @@
 #include <freerdp/client/encomsp.h>
 #endif
 
+/** @brief Opaqye handle for AAD wrapper
+ * @since version 3.16.0
+ */
 typedef struct MIBClientWrapper MIBClientWrapper;
 
 #ifdef __cplusplus
@@ -140,8 +143,9 @@ extern "C"
 		ALIGN64 FreeRDP_TouchContact contacts[FREERDP_MAX_TOUCH_CONTACTS]; /**< (offset 8) */
 		ALIGN64 FreeRDP_PenDevice pens[FREERDP_MAX_PEN_DEVICES];           /**< (offset 9) */
 
-		ALIGN64 MIBClientWrapper* mibClientWrapper; /**< (offset 10) */
-		UINT64 reserved[128 - 10];                  /**< (offset 10) */
+		ALIGN64 MIBClientWrapper* mibClientWrapper; /**< (offset 10) @since version 3.16.0 */
+		ALIGN64 BOOL pressed_buttons[5];            /**< (offset 11) @since version 3.17.0 */
+		UINT64 reserved[129 - 16];                  /**< (offset 16) */
 	};
 
 	/* Common client functions */
@@ -289,9 +293,6 @@ extern "C"
 
 	FREERDP_API BOOL freerdp_client_send_wheel_event(rdpClientContext* cctx, UINT16 mflags);
 
-	FREERDP_API BOOL freerdp_client_send_mouse_event(rdpClientContext* cctx, UINT64 mflags, INT32 x,
-	                                                 INT32 y);
-
 	/** @brief this function checks if relative mouse events are supported and enabled for this
 	 * session.
 	 *
@@ -317,6 +318,27 @@ extern "C"
 	FREERDP_API BOOL freerdp_client_encomsp_set_control(EncomspClientContext* encomsp,
 	                                                    BOOL control);
 #endif
+
+	/** @brief type of AAD request
+	 * @since version 3.16.0
+	 */
+	typedef enum
+	{
+		FREERDP_CLIENT_AAD_AUTH_REQUEST,
+		FREERDP_CLIENT_AAD_TOKEN_REQUEST,
+		FREERDP_CLIENT_AAD_AVD_AUTH_REQUEST,
+		FREERDP_CLIENT_AAD_AVD_TOKEN_REQUEST,
+	} freerdp_client_aad_type;
+
+	/** @brief helper function to construct a connection URL for AAD authentication
+	 *
+	 *  @param cctx The client context to use
+	 *  @return An allocated string that can be used to connect
+	 *  @since version 3.16.0
+	 */
+	WINPR_ATTR_MALLOC(free, 1)
+	FREERDP_API char* freerdp_client_get_aad_url(rdpClientContext* cctx,
+	                                             freerdp_client_aad_type type, ...);
 
 #ifdef __cplusplus
 }
