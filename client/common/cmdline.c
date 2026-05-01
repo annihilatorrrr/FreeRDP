@@ -5663,7 +5663,8 @@ static void warn_credential_args(const COMMAND_LINE_ARGUMENT_A* args)
 static int freerdp_client_settings_parse_command_line_arguments_int(
     rdpSettings* settings, int argc, char* argv[], BOOL allowUnknown,
     COMMAND_LINE_ARGUMENT_A* largs, WINPR_ATTR_UNUSED size_t count,
-    freerdp_command_line_handle_option_t handle_option, void* handle_userdata, bool isArgsFrom)
+    freerdp_command_line_handle_option_t handle_option, void* handle_userdata,
+    FREERDP_SETTINGS_CMD_PARSE_FLAGS cmdflags)
 {
 	char* user = nullptr;
 	int status = 0;
@@ -5727,7 +5728,7 @@ static int freerdp_client_settings_parse_command_line_arguments_int(
 		return status;
 
 	prepare_default_settings(settings, largs, ext);
-	if (!isArgsFrom)
+	if ((cmdflags & FREERDP_SETTINGS_CMD_PARSE_SUPPRESS_WARNINGS) == 0)
 		warn_credential_args(largs);
 
 	arg = largs;
@@ -6005,9 +6006,17 @@ int freerdp_client_settings_parse_command_line_arguments(rdpSettings* settings, 
 }
 
 int freerdp_client_settings_parse_command_line_arguments_ex(
+    rdpSettings* settings, int argc, char** argv, BOOL allowUnknown, COMMAND_LINE_ARGUMENT_A* args,
+    size_t count, freerdp_command_line_handle_option_t handle_option, void* handle_userdata)
+{
+	return freerdp_client_settings_parse_command_line_arguments_with_flags(
+	    settings, argc, argv, allowUnknown, args, count, handle_option, handle_userdata, 0);
+}
+
+int freerdp_client_settings_parse_command_line_arguments_with_flags(
     rdpSettings* settings, int oargc, char** oargv, BOOL allowUnknown,
     COMMAND_LINE_ARGUMENT_A* args, size_t count, freerdp_command_line_handle_option_t handle_option,
-    void* handle_userdata)
+    void* handle_userdata, UINT32 flags, ...)
 {
 	int argc = oargc;
 	char** argv = oargv;
@@ -6015,10 +6024,9 @@ int freerdp_client_settings_parse_command_line_arguments_ex(
 	int aargc = 0;
 	char** aargv = nullptr;
 
-	bool isArgsFrom = false;
 	if ((argc == 2) && option_starts_with("/args-from:", argv[1]))
 	{
-		isArgsFrom = true;
+		flags |= FREERDP_SETTINGS_CMD_PARSE_SUPPRESS_WARNINGS;
 		BOOL success = FALSE;
 		const char* file = strchr(argv[1], ':') + 1;
 		FILE* fp = stdin;
@@ -6068,8 +6076,7 @@ int freerdp_client_settings_parse_command_line_arguments_ex(
 		goto fail;
 
 	res = freerdp_client_settings_parse_command_line_arguments_int(
-	    settings, argc, argv, allowUnknown, largs, lcount, handle_option, handle_userdata,
-	    isArgsFrom);
+	    settings, argc, argv, allowUnknown, largs, lcount, handle_option, handle_userdata, flags);
 fail:
 	free(largs);
 	argv_free(&aargc, &aargv);

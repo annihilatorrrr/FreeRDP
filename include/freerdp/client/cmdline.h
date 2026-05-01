@@ -31,6 +31,12 @@ extern "C"
 {
 #endif
 
+	typedef enum
+	{
+		FREERDP_SETTINGS_CMD_PARSE_NO_FLAGS = 0x0000u,
+		FREERDP_SETTINGS_CMD_PARSE_SUPPRESS_WARNINGS = 0x0002u
+	} FREERDP_SETTINGS_CMD_PARSE_FLAGS;
+
 	/** @brief Callback function type definition for command line handling
 	 *
 	 *  @param arg A pointer to the argument to handle
@@ -78,6 +84,32 @@ extern "C"
 	    rdpSettings* settings, int argc, char** argv, BOOL allowUnknown,
 	    COMMAND_LINE_ARGUMENT_A* args, size_t count,
 	    freerdp_command_line_handle_option_t handle_option, void* handle_userdata);
+
+	/** \brief parses command line arguments to appropriate settings values. Additionally allows
+	 * supplying custom command line arguments and a handler function.
+	 *
+	 * \param settings The settings instance to store the parsed values to
+	 * \param argc the number of argv values
+	 * \param argv an array of strings (char pointer)
+	 * \param allowUnknown Allow unknown command line arguments or \b FALSE if not.
+	 * \param args Pointer to the custom arguments
+	 * \param count The number of custom arguments
+	 * \param handle_option the handler function for custom arguments.
+	 * \param handle_userdata custom data supplied to \b handle_option as context
+	 * \param flags Use any of the \ref FREERDP_SETTINGS_CMD_PARSE_FLAGS flags. By default use
+	 * FREERDP_SETTINGS_CMD_PARSE_NO_FLAGS to behave like \ref
+	 * freerdp_client_settings_parse_command_line_arguments_ex
+	 *
+	 * \since version 3.26.0
+	 *
+	 * \return \b 0 in case of success, a negative number in case of failure.
+	 */
+	WINPR_ATTR_NODISCARD
+	FREERDP_API int freerdp_client_settings_parse_command_line_arguments_with_flags(
+	    rdpSettings* settings, int argc, char** argv, BOOL allowUnknown,
+	    COMMAND_LINE_ARGUMENT_A* args, size_t count,
+	    freerdp_command_line_handle_option_t handle_option, void* handle_userdata, UINT32 flags,
+	    ...);
 
 	WINPR_ATTR_NODISCARD
 	FREERDP_API int freerdp_client_settings_command_line_status_print(rdpSettings* settings,
