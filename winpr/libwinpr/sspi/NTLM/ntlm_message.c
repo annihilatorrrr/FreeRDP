@@ -1097,25 +1097,25 @@ SECURITY_STATUS ntlm_read_AuthenticateMessage(NTLM_CONTEXT* context, PSecBuffer 
 
 	if (message->UserName.Len > 0)
 	{
-		credentials->identity.User = (UINT16*)malloc(message->UserName.Len);
+		credentials->identity.User = (UINT16*)calloc(message->UserName.Len + sizeof(WCHAR), 1);
 
 		if (!credentials->identity.User)
 			goto fail;
 
 		CopyMemory(credentials->identity.User, message->UserName.Buffer, message->UserName.Len);
-		credentials->identity.UserLength = message->UserName.Len / 2;
+		credentials->identity.UserLength = message->UserName.Len / sizeof(WCHAR);
 	}
 
 	if (message->DomainName.Len > 0)
 	{
-		credentials->identity.Domain = (UINT16*)malloc(message->DomainName.Len);
+		credentials->identity.Domain = (UINT16*)calloc(message->DomainName.Len + sizeof(WCHAR), 1);
 
 		if (!credentials->identity.Domain)
 			goto fail;
 
 		CopyMemory(credentials->identity.Domain, message->DomainName.Buffer,
 		           message->DomainName.Len);
-		credentials->identity.DomainLength = message->DomainName.Len / 2;
+		credentials->identity.DomainLength = message->DomainName.Len / sizeof(WCHAR);
 	}
 
 	if (context->NegotiateFlags & NTLMSSP_NEGOTIATE_LM_KEY)
