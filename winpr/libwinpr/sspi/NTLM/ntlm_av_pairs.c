@@ -179,7 +179,7 @@ void ntlm_print_av_pair_list(NTLM_AV_PAIR* pAvPairList, size_t cbAvPairList)
 
 		WLog_VRB(TAG, "\t%s AvId: %" PRIu16 " AvLen: %" PRIuz "", get_av_pair_string(pair), pair,
 		         cbLen);
-		winpr_HexDump(TAG, WLOG_TRACE, ntlm_av_pair_get_value_pointer(pAvPair), cbLen);
+		winpr_HexDump(TAG, WLOG_TRACE, ntlm_av_pair_get_value_pointer(pAvPair, cbAvPair), cbLen);
 
 		pAvPair = ntlm_av_pair_next(pAvPair, &cbAvPair);
 	}
@@ -192,9 +192,11 @@ static size_t ntlm_av_pair_list_size(size_t AvPairsCount, size_t AvPairsValueLen
 	return ((AvPairsCount + 1) * 4ULL) + AvPairsValueLength;
 }
 
-PBYTE ntlm_av_pair_get_value_pointer(NTLM_AV_PAIR* pAvPair)
+PBYTE ntlm_av_pair_get_value_pointer(NTLM_AV_PAIR* pAvPair, size_t cbAvPair)
 {
 	WINPR_ASSERT(pAvPair);
+	if (cbAvPair < sizeof(NTLM_AV_PAIR))
+		return nullptr;
 	return (PBYTE)pAvPair + sizeof(NTLM_AV_PAIR);
 }
 
@@ -279,7 +281,7 @@ static BOOL ntlm_av_pair_add(NTLM_AV_PAIR* pAvPairList, size_t cbAvPairList, NTL
 	if (AvLen)
 	{
 		WINPR_ASSERT(Value != nullptr);
-		CopyMemory(ntlm_av_pair_get_value_pointer(pAvPair), Value, AvLen);
+		CopyMemory(ntlm_av_pair_get_value_pointer(pAvPair, cbAvPair), Value, AvLen);
 	}
 
 	pAvPair = ntlm_av_pair_next(pAvPair, &cbAvPair);
@@ -327,7 +329,7 @@ static BOOL ntlm_av_pair_add_copy(NTLM_AV_PAIR* pAvPairList, size_t cbAvPairList
 
 	WINPR_ASSERT(avLen <= UINT16_MAX);
 	return ntlm_av_pair_add(pAvPairList, cbAvPairList, WINPR_ASSERTING_INT_CAST(NTLM_AV_ID, pair),
-	                        ntlm_av_pair_get_value_pointer(pAvPair), (UINT16)avLen);
+	                        ntlm_av_pair_get_value_pointer(pAvPair, cbAvPair), (UINT16)avLen);
 }
 
 static char* get_name(COMPUTER_NAME_FORMAT type)
@@ -795,10 +797,12 @@ BOOL ntlm_construct_authenticate_target_info(NTLM_CONTEXT* context)
 
 	if (context->NTLMv2)
 	{
-		NTLM_AV_PAIR* AvEOL = nullptr;
-		AvEOL = ntlm_av_pair_get(ChallengeTargetInfo, cbChallengeTargetInfo, MsvAvEOL, nullptr);
+		size_t cbAvEOL = 0;
+		NTLM_AV_PAIR* AvEOL =
+		    ntlm_av_pair_get(ChallengeTargetInfo, cbChallengeTargetInfo, MsvAvEOL, &cbAvEOL);
 
-		if (!AvEOL)
+		size_t cbAvEntryLen = 0;
+		if (!ntlm_av_pair_get_len(AvEOL, cbAvEOL, &cbAvEntryLen))
 			goto fail;
 
 		ZeroMemory(AvEOL, sizeof(NTLM_AV_PAIR));

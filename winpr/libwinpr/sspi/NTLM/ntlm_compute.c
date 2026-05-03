@@ -276,15 +276,13 @@ void ntlm_generate_timestamp(NTLM_CONTEXT* context)
 static BOOL ntlm_fetch_ntlm_v2_hash(NTLM_CONTEXT* context, BYTE* hash)
 {
 	BOOL rc = FALSE;
-	WINPR_SAM* sam = nullptr;
 	WINPR_SAM_ENTRY* entry = nullptr;
-	SSPI_CREDENTIALS* credentials = nullptr;
 
 	WINPR_ASSERT(context);
 	WINPR_ASSERT(hash);
 
-	credentials = context->credentials;
-	sam = SamOpen(context->SamFile, TRUE);
+	SSPI_CREDENTIALS* credentials = context->credentials;
+	WINPR_SAM* sam = SamOpen(context->SamFile, TRUE);
 
 	if (!sam)
 		goto fail;
@@ -411,12 +409,10 @@ static int ntlm_convert_password_hash(NTLM_CONTEXT* context, BYTE* hash, size_t 
 
 static BOOL ntlm_compute_ntlm_v2_hash(NTLM_CONTEXT* context, BYTE* hash)
 {
-	SSPI_CREDENTIALS* credentials = nullptr;
-
 	WINPR_ASSERT(context);
 	WINPR_ASSERT(hash);
 
-	credentials = context->credentials;
+	SSPI_CREDENTIALS* credentials = context->credentials;
 #ifdef WITH_DEBUG_NTLM
 
 	if (credentials)
@@ -776,15 +772,13 @@ static BOOL ntlm_generate_signing_key(BYTE* exported_session_key, const SecBuffe
                                       BYTE* signing_key)
 {
 	BOOL rc = FALSE;
-	size_t length = 0;
-	BYTE* value = nullptr;
 
 	WINPR_ASSERT(exported_session_key);
 	WINPR_ASSERT(sign_magic);
 	WINPR_ASSERT(signing_key);
 
-	length = WINPR_MD5_DIGEST_LENGTH + sign_magic->cbBuffer;
-	value = (BYTE*)malloc(length);
+	const size_t length = WINPR_MD5_DIGEST_LENGTH + sign_magic->cbBuffer;
+	BYTE* value = (BYTE*)malloc(length);
 
 	if (!value)
 		goto out;

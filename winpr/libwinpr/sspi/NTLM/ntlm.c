@@ -866,7 +866,6 @@ static SECURITY_STATUS SEC_ENTRY ntlm_QueryContextAttributesW(PCtxtHandle phCont
 	}
 	else if (ulAttribute == SECPKG_ATTR_AUTH_IDENTITY)
 	{
-		SSPI_CREDENTIALS* credentials = nullptr;
 		const SecPkgContext_AuthIdentity empty = WINPR_C_ARRAY_INIT;
 		SecPkgContext_AuthIdentity* AuthIdentity = (SecPkgContext_AuthIdentity*)pBuffer;
 
@@ -874,7 +873,7 @@ static SECURITY_STATUS SEC_ENTRY ntlm_QueryContextAttributesW(PCtxtHandle phCont
 		*AuthIdentity = empty;
 
 		context->UseSamFileDatabase = FALSE;
-		credentials = context->credentials;
+		SSPI_CREDENTIALS* credentials = context->credentials;
 
 		if (credentials->identity.UserLength > 0)
 		{

@@ -31,6 +31,7 @@
 
 #include "sspi_winpr.h"
 
+#include "../utils.h"
 #include "../log.h"
 #define TAG WINPR_TAG("sspi")
 
@@ -748,7 +749,7 @@ BOOL sspi_CopyAuthIdentityFieldsW(const SEC_WINNT_AUTH_IDENTITY_INFO* identity, 
 
 		if (UserW && UserLength)
 		{
-			*pUser = _wcsdup(UserW);
+			*pUser = winpr_wcsndup(UserW, UserLength / sizeof(WCHAR));
 
 			if (!(*pUser))
 				goto cleanup;
@@ -756,7 +757,7 @@ BOOL sspi_CopyAuthIdentityFieldsW(const SEC_WINNT_AUTH_IDENTITY_INFO* identity, 
 
 		if (DomainW && DomainLength)
 		{
-			*pDomain = _wcsdup(DomainW);
+			*pDomain = winpr_wcsndup(DomainW, DomainLength / sizeof(WCHAR));
 
 			if (!(*pDomain))
 				goto cleanup;
@@ -764,7 +765,7 @@ BOOL sspi_CopyAuthIdentityFieldsW(const SEC_WINNT_AUTH_IDENTITY_INFO* identity, 
 
 		if (PasswordW && PasswordLength)
 		{
-			*pPassword = _wcsdup(PasswordW);
+			*pPassword = winpr_wcsndup(PasswordW, PasswordLength / sizeof(WCHAR));
 
 			if (!(*pPassword))
 				goto cleanup;
