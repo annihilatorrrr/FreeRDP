@@ -474,14 +474,12 @@ static BOOL ntlm_read_message_integrity_check(wStream* s, size_t* offset, BYTE* 
 static BOOL ntlm_write_message_integrity_check(wStream* s, size_t offset, const BYTE* data,
                                                size_t size, WINPR_ATTR_UNUSED const char* name)
 {
-	size_t pos = 0;
-
 	WINPR_ASSERT(s);
 	WINPR_ASSERT(data);
 	WINPR_ASSERT(size == WINPR_MD5_DIGEST_LENGTH);
 	WINPR_ASSERT(name);
 
-	pos = Stream_GetPosition(s);
+	const size_t pos = Stream_GetPosition(s);
 
 	if (!NTLM_CheckAndLogRequiredCapacity(TAG, s, offset, "MessageIntegrityCheck::offset"))
 		return FALSE;
@@ -497,21 +495,19 @@ static BOOL ntlm_write_message_integrity_check(wStream* s, size_t offset, const 
 
 SECURITY_STATUS ntlm_read_NegotiateMessage(NTLM_CONTEXT* context, PSecBuffer buffer)
 {
-	wStream sbuffer;
-	wStream* s = nullptr;
+	wStream sbuffer = WINPR_C_ARRAY_INIT;
 	size_t length = 0;
 	const NTLM_NEGOTIATE_MESSAGE empty = WINPR_C_ARRAY_INIT;
-	NTLM_NEGOTIATE_MESSAGE* message = nullptr;
 
 	WINPR_ASSERT(context);
 	WINPR_ASSERT(buffer);
 
-	message = &context->NEGOTIATE_MESSAGE;
+	NTLM_NEGOTIATE_MESSAGE* message = &context->NEGOTIATE_MESSAGE;
 	WINPR_ASSERT(message);
 
 	*message = empty;
 
-	s = Stream_StaticConstInit(&sbuffer, buffer->pvBuffer, buffer->cbBuffer);
+	wStream* s = Stream_StaticConstInit(&sbuffer, buffer->pvBuffer, buffer->cbBuffer);
 
 	if (!s)
 		return SEC_E_INTERNAL_ERROR;
@@ -571,21 +567,19 @@ SECURITY_STATUS ntlm_read_NegotiateMessage(NTLM_CONTEXT* context, PSecBuffer buf
 
 SECURITY_STATUS ntlm_write_NegotiateMessage(NTLM_CONTEXT* context, SecBuffer* buffer)
 {
-	wStream sbuffer;
-	wStream* s = nullptr;
+	wStream sbuffer = WINPR_C_ARRAY_INIT;
 	size_t length = 0;
 	const NTLM_NEGOTIATE_MESSAGE empty = WINPR_C_ARRAY_INIT;
-	NTLM_NEGOTIATE_MESSAGE* message = nullptr;
 
 	WINPR_ASSERT(context);
 	WINPR_ASSERT(buffer);
 
-	message = &context->NEGOTIATE_MESSAGE;
+	NTLM_NEGOTIATE_MESSAGE* message = &context->NEGOTIATE_MESSAGE;
 	WINPR_ASSERT(message);
 
 	*message = empty;
 
-	s = Stream_StaticInit(&sbuffer, buffer->pvBuffer, buffer->cbBuffer);
+	wStream* s = Stream_StaticInit(&sbuffer, buffer->pvBuffer, buffer->cbBuffer);
 
 	if (!s)
 		return SEC_E_INTERNAL_ERROR;
@@ -665,26 +659,24 @@ SECURITY_STATUS ntlm_write_NegotiateMessage(NTLM_CONTEXT* context, SecBuffer* bu
 SECURITY_STATUS ntlm_read_ChallengeMessage(NTLM_CONTEXT* context, PSecBuffer buffer)
 {
 	SECURITY_STATUS status = SEC_E_INVALID_TOKEN;
-	wStream sbuffer;
-	wStream* s = nullptr;
+	wStream sbuffer = WINPR_C_ARRAY_INIT;
 	size_t length = 0;
 	size_t StartOffset = 0;
 	size_t PayloadOffset = 0;
-	NTLM_AV_PAIR* AvTimestamp = nullptr;
 	const NTLM_CHALLENGE_MESSAGE empty = WINPR_C_ARRAY_INIT;
-	NTLM_CHALLENGE_MESSAGE* message = nullptr;
 
 	if (!context || !buffer)
 		return SEC_E_INTERNAL_ERROR;
 
 	if (!ntlm_generate_client_challenge(context))
 		return SEC_E_INTERNAL_ERROR;
-	message = &context->CHALLENGE_MESSAGE;
+
+	NTLM_CHALLENGE_MESSAGE* message = &context->CHALLENGE_MESSAGE;
 	WINPR_ASSERT(message);
 
 	*message = empty;
 
-	s = Stream_StaticConstInit(&sbuffer, buffer->pvBuffer, buffer->cbBuffer);
+	wStream* s = Stream_StaticConstInit(&sbuffer, buffer->pvBuffer, buffer->cbBuffer);
 
 	if (!s)
 		return SEC_E_INTERNAL_ERROR;
@@ -737,12 +729,13 @@ SECURITY_STATUS ntlm_read_ChallengeMessage(NTLM_CONTEXT* context, PSecBuffer buf
 
 		context->ChallengeTargetInfo.pvBuffer = message->TargetInfo.Buffer;
 		context->ChallengeTargetInfo.cbBuffer = message->TargetInfo.Len;
-		AvTimestamp = ntlm_av_pair_get((NTLM_AV_PAIR*)message->TargetInfo.Buffer,
-		                               message->TargetInfo.Len, MsvAvTimestamp, &cbAvTimestamp);
+		NTLM_AV_PAIR* AvTimestamp =
+		    ntlm_av_pair_get((NTLM_AV_PAIR*)message->TargetInfo.Buffer, message->TargetInfo.Len,
+		                     MsvAvTimestamp, &cbAvTimestamp);
 
 		if (AvTimestamp)
 		{
-			PBYTE ptr = ntlm_av_pair_get_value_pointer(AvTimestamp);
+			PBYTE ptr = ntlm_av_pair_get_value_pointer(AvTimestamp, cbAvTimestamp);
 
 			if (!ptr || (AvTimestamp->AvLen < 8))
 				goto fail;
@@ -834,22 +827,20 @@ fail:
 
 SECURITY_STATUS ntlm_write_ChallengeMessage(NTLM_CONTEXT* context, SecBuffer* buffer)
 {
-	wStream sbuffer;
-	wStream* s = nullptr;
+	wStream sbuffer = WINPR_C_ARRAY_INIT;
 	size_t length = 0;
 	UINT32 PayloadOffset = 0;
 	const NTLM_CHALLENGE_MESSAGE empty = WINPR_C_ARRAY_INIT;
-	NTLM_CHALLENGE_MESSAGE* message = nullptr;
 
 	WINPR_ASSERT(context);
 	WINPR_ASSERT(buffer);
 
-	message = &context->CHALLENGE_MESSAGE;
+	NTLM_CHALLENGE_MESSAGE* message = &context->CHALLENGE_MESSAGE;
 	WINPR_ASSERT(message);
 
 	*message = empty;
 
-	s = Stream_StaticInit(&sbuffer, buffer->pvBuffer, buffer->cbBuffer);
+	wStream* s = Stream_StaticInit(&sbuffer, buffer->pvBuffer, buffer->cbBuffer);
 
 	if (!s)
 		return SEC_E_INTERNAL_ERROR;
@@ -948,28 +939,25 @@ SECURITY_STATUS ntlm_write_ChallengeMessage(NTLM_CONTEXT* context, SecBuffer* bu
 SECURITY_STATUS ntlm_read_AuthenticateMessage(NTLM_CONTEXT* context, PSecBuffer buffer)
 {
 	SECURITY_STATUS status = SEC_E_INVALID_TOKEN;
-	wStream sbuffer;
-	wStream* s = nullptr;
+	wStream sbuffer = WINPR_C_ARRAY_INIT;
 	size_t length = 0;
 	UINT32 flags = 0;
 	NTLM_AV_PAIR* AvFlags = nullptr;
 	size_t PayloadBufferOffset = 0;
 	const NTLM_AUTHENTICATE_MESSAGE empty = WINPR_C_ARRAY_INIT;
-	NTLM_AUTHENTICATE_MESSAGE* message = nullptr;
-	SSPI_CREDENTIALS* credentials = nullptr;
 
 	WINPR_ASSERT(context);
 	WINPR_ASSERT(buffer);
 
-	credentials = context->credentials;
+	SSPI_CREDENTIALS* credentials = context->credentials;
 	WINPR_ASSERT(credentials);
 
-	message = &context->AUTHENTICATE_MESSAGE;
+	NTLM_AUTHENTICATE_MESSAGE* message = &context->AUTHENTICATE_MESSAGE;
 	WINPR_ASSERT(message);
 
 	*message = empty;
 
-	s = Stream_StaticConstInit(&sbuffer, buffer->pvBuffer, buffer->cbBuffer);
+	wStream* s = Stream_StaticConstInit(&sbuffer, buffer->pvBuffer, buffer->cbBuffer);
 
 	if (!s)
 		return SEC_E_INTERNAL_ERROR;
@@ -1061,7 +1049,7 @@ SECURITY_STATUS ntlm_read_AuthenticateMessage(NTLM_CONTEXT* context, PSecBuffer 
 
 		if (AvFlags)
 		{
-			const BYTE* ptr = ntlm_av_pair_get_value_pointer(AvFlags);
+			const BYTE* ptr = ntlm_av_pair_get_value_pointer(AvFlags, cbAvFlags);
 			if (!ptr || (AvFlags->AvLen < 4))
 				goto fail;
 			flags = winpr_Data_Get_UINT32(ptr);
@@ -1259,26 +1247,23 @@ fail:
 
 SECURITY_STATUS ntlm_write_AuthenticateMessage(NTLM_CONTEXT* context, SecBuffer* buffer)
 {
-	wStream sbuffer;
-	wStream* s = nullptr;
+	wStream sbuffer = WINPR_C_ARRAY_INIT;
 	size_t length = 0;
 	UINT32 PayloadBufferOffset = 0;
 	const NTLM_AUTHENTICATE_MESSAGE empty = WINPR_C_ARRAY_INIT;
-	NTLM_AUTHENTICATE_MESSAGE* message = nullptr;
-	SSPI_CREDENTIALS* credentials = nullptr;
 
 	WINPR_ASSERT(context);
 	WINPR_ASSERT(buffer);
 
-	credentials = context->credentials;
+	SSPI_CREDENTIALS* credentials = context->credentials;
 	WINPR_ASSERT(credentials);
 
-	message = &context->AUTHENTICATE_MESSAGE;
+	NTLM_AUTHENTICATE_MESSAGE* message = &context->AUTHENTICATE_MESSAGE;
 	WINPR_ASSERT(message);
 
 	*message = empty;
 
-	s = Stream_StaticInit(&sbuffer, buffer->pvBuffer, buffer->cbBuffer);
+	wStream* s = Stream_StaticInit(&sbuffer, buffer->pvBuffer, buffer->cbBuffer);
 
 	if (!s)
 		return SEC_E_INTERNAL_ERROR;

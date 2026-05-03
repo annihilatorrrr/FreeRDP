@@ -82,7 +82,7 @@ out_fail:
 BOOL NTOWFv2W(LPCWSTR Password, UINT32 PasswordLengthInBytes, LPCWSTR User,
               UINT32 UserLengthInBytes, LPCWSTR Domain, UINT32 DomainLengthInBytes, BYTE* NtHash)
 {
-	BYTE NtHashV1[WINPR_MD5_DIGEST_LENGTH];
+	BYTE NtHashV1[WINPR_MD5_DIGEST_LENGTH] = WINPR_C_ARRAY_INIT;
 
 	if (!Domain && (DomainLengthInBytes > 0))
 		return FALSE;
