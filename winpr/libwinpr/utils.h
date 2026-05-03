@@ -29,3 +29,5 @@ WINPR_ATTR_MALLOC(free, 1)
 WINPR_LOCAL WINPR_ATTR_NODISCARD char* winpr_getApplicatonDetailsCombined(char separator);
 
 WINPR_LOCAL WINPR_ATTR_NODISCARD BOOL winpr_areApplicationDetailsCustomized(void);
+
+WINPR_LOCAL WINPR_ATTR_MALLOC(free, 1) WCHAR* winpr_wcsndup(const WCHAR* str, size_t charCount);

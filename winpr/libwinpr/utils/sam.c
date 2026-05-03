@@ -32,6 +32,7 @@
 #include <winpr/file.h>
 
 #include "../log.h"
+#include "../utils.h"
 
 #ifdef WINPR_HAVE_UNISTD_H
 #include <unistd.h>
@@ -369,10 +370,10 @@ WINPR_SAM_ENTRY* SamLookupUserW(WINPR_SAM* sam, LPCWSTR User, UINT32 UserLength,
 		entry->User = nullptr;
 		entry->Domain = nullptr;
 		if (User)
-			entry->User = (char*)_wcsdup(User);
+			entry->User = (char*)winpr_wcsndup(User, UserLength / sizeof(WCHAR));
 		entry->UserLength = UserLength;
 		if (Domain)
-			entry->Domain = (char*)_wcsdup(Domain);
+			entry->Domain = (char*)winpr_wcsndup(Domain, DomainLength / sizeof(WCHAR));
 		entry->DomainLength = DomainLength;
 	}
 fail:

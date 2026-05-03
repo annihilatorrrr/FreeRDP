@@ -183,3 +183,15 @@ const char* winpr_get_build_config(void)
 
 	return build_config;
 }
+
+WCHAR* winpr_wcsndup(const WCHAR* str, size_t charCount)
+{
+	if (!str || (charCount == 0))
+		return nullptr;
+
+	WCHAR* copy = calloc(charCount + 1, sizeof(WCHAR));
+	if (!copy)
+		return nullptr;
+	memcpy(copy, str, charCount * sizeof(WCHAR));
+	return copy;
+}
